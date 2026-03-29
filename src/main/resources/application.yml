@@ -1,23 +1,9 @@
-#spring.application.name=UberProject-BookingService
-#spring.datasource.url:jdbc:mysql://localhost:3306/BookingService
-#
-#spring.datasource.username:root
-#
-#spring.datasource.password:${mysql_password}
-#
-##spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
-#
-#spring.jpa.show-sql:true
-#
-#spring.jpa.hibernate.ddl-auto:validate
-#
-#server.port:7476
 
 spring:
   application:
     name: UberProject-BookingService
   datasource:
-    url:jdbc: mysql://localhost:3306/BookingService
+    url:jdbc: mysql://localhost:3306/EntityService
     username: root
     password: ${mysql_password}
   jpa:
@@ -25,4 +11,4 @@ spring:
     hibernate:
       ddl-auto: validate
 server:
-  port: 7477
+  port: 8080
