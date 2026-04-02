@@ -1,11 +1,9 @@
 package com.example.UberProject_BookingService.services;
 
-import com.example.UberProject_BookingService.DTO.CreateBookingRequestDto;
-import com.example.UberProject_BookingService.DTO.CreateBookingResponseDto;
-import com.example.UberProject_BookingService.DTO.DriverLocationResponseDto;
-import com.example.UberProject_BookingService.DTO.NearByDriverRequestDto;
+import com.example.UberProject_BookingService.DTO.*;
 import com.example.UberProject_BookingService.apis.LocationServiceApi;
 import com.example.UberProject_BookingService.repositories.BookingRepositories;
+import com.example.UberProject_BookingService.repositories.DriverRepository;
 import com.example.UberProject_BookingService.repositories.PassengerRepositories;
 import com.example.UberProject_EntityService.Enums.BookingStatus;
 import com.example.UberProject_EntityService.modles.Booking;
@@ -25,6 +23,7 @@ import java.util.Optional;
 
 @Service
 public class BookingServiceImpl implements BookingService{
+    private DriverRepository driverRepository;
     private LocationServiceApi locationServiceApi;
     private final String LOCATION_SERVICE="http://localhost:7476";
     private final RestTemplate restTemplate;
@@ -32,11 +31,14 @@ public class BookingServiceImpl implements BookingService{
     private final BookingRepositories bookingRepositories;
 
     public BookingServiceImpl(PassengerRepositories passengerRepositories,
-                              BookingRepositories bookingRepositories, LocationServiceApi locationServiceApi) {
+                              BookingRepositories bookingRepositories,
+                              LocationServiceApi locationServiceApi,
+                              DriverRepository driverRepository) {
         this.passengerRepositories = passengerRepositories;
         this.bookingRepositories = bookingRepositories;
         this.restTemplate=new RestTemplate();
         this.locationServiceApi = locationServiceApi;
+        this.driverRepository=driverRepository;
     }
 
     @Override
@@ -86,7 +88,9 @@ public class BookingServiceImpl implements BookingService{
                  {
                      List<DriverLocationResponseDto> driverLocations = Arrays.asList(response.body());
                      driverLocations.forEach(driverLocationResponseDto -> {
-                         System.out.println(driverLocationResponseDto.getDriverId() + " " + "lat: " + driverLocationResponseDto.getLatitude() + " " + "lon: " + driverLocationResponseDto.getLongitude());
+                         System.out.println(driverLocationResponseDto.getDriverId()
+                                 + " " + "lat: " + driverLocationResponseDto.getLatitude()
+                                 + " " + "lon: " + driverLocationResponseDto.getLongitude());
                      });
                  }
                  else{
@@ -101,4 +105,23 @@ public class BookingServiceImpl implements BookingService{
              }
          });
      }
+
+    @Override
+    public UpdateBookingResponseDto updateBooking(UpdateBookingRequestDto requestDto, Long bookingId) {
+        System.out.println("++++++++++++++++update booking - 111+++++++++++++++++");
+        Drivers driver = driverRepository.findById(requestDto.getDriverId())
+                .orElseThrow(() -> new RuntimeException("Driver not found"));
+        System.out.println("driver: "+driver.getId());
+        if(driver != null){
+            bookingRepositories.UpdateBookingStatusAndDriverById(bookingId, requestDto.getStatus(), driver);
+        }
+        System.out.println("---------update Booking - 118-----------");
+        Optional<Booking> booking = bookingRepositories.findById(bookingId);
+
+        return UpdateBookingResponseDto.builder()
+                .BookingId(booking.get().getId())
+                .status(booking.get().getBookingStatus().toString())
+                .driver(booking.get().getDrivers())
+                .build();
+    }
 }
